@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neuralverse Physics Dice | DOT CLUB</title>
+    <style>
+        :root {
+            --bg: #020508;
+            --neon-blue: #00f2ff;
+            --neon-purple: #bc13fe;
+            --neon-gold: #ffcc00;
+            --dice-size: 100px;
+        }
+
+        body {
+            background-color: var(--bg);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            perspective: 1200px;
+            font-family: 'Segoe UI', sans-serif;
+            overflow: hidden;
+            color: white;
+        }
+
+        /* --- Header / Logo Section --- */
+        .header-logos {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            box-sizing: border-box;
+            z-index: 100;
+        }
+
+        .logo-item {
+            width: 80px; /* Adjust size as needed */
+            height: auto;
+            filter: drop-shadow(0 0 5px rgba(0, 242, 255, 0.5));
+        }
+
+        /* --- 3D Scene --- */
+        .scene {
+            width: var(--dice-size);
+            height: var(--dice-size);
+            margin-bottom: 60px;
+            transition: transform 0.6s ease-out;
+        }
+
+        .cube {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 2s cubic-bezier(0.15, 1, 0.3, 1.1);
+        }
+
+        .face {
+            position: absolute;
+            width: var(--dice-size);
+            height: var(--dice-size);
+            background: rgba(10, 20, 30, 0.95);
+            border: 2px solid var(--neon-blue);
+            line-height: var(--dice-size);
+            font-size: 3.5rem;
+            text-align: center;
+            font-weight: bold;
+            color: var(--neon-blue);
+            box-shadow: inset 0 0 20px rgba(0, 242, 255, 0.2);
+            backface-visibility: hidden;
+        }
+
+        /* Positioning Faces */
+        .front  { transform: rotateY(0deg) translateZ(50px); }
+        .back   { transform: rotateY(180deg) translateZ(50px); }
+        .right  { transform: rotateY(90deg) translateZ(50px); }
+        .left   { transform: rotateY(-90deg) translateZ(50px); }
+        .top    { transform: rotateX(90deg) translateZ(50px); }
+        .bottom { transform: rotateX(-90deg) translateZ(50px); }
+
+        .star-face {
+            color: var(--neon-gold);
+            border-color: var(--neon-purple);
+            text-shadow: 0 0 15px var(--neon-gold);
+        }
+
+        .shadow {
+            position: absolute;
+            width: 100px;
+            height: 40px;
+            background: rgba(0, 242, 255, 0.1);
+            filter: blur(15px);
+            border-radius: 50%;
+            transform: translateY(120px) rotateX(90deg);
+            transition: 2s;
+        }
+
+        /* --- Controls --- */
+        #roll-btn {
+            background: transparent;
+            color: var(--neon-blue);
+            border: 2px solid var(--neon-blue);
+            padding: 15px 50px;
+            cursor: pointer;
+            font-weight: bold;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            transition: 0.3s;
+            z-index: 10;
+        }
+
+        #roll-btn:hover {
+            background: rgba(0, 242, 255, 0.1);
+            box-shadow: 0 0 20px var(--neon-blue);
+        }
+
+        /* --- Footer Section --- */
+        .footer {
+            position: absolute;
+            bottom: 20px;
+            right: 30px;
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.5);
+            letter-spacing: 1px;
+        }
+
+        button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header-logos">
+        <img src="C:\Users\srini\OneDrive\Desktop\DICE\logo3.PNG" alt="Left Logo" class="logo-item">
+        <img src="C:\Users\srini\OneDrive\Desktop\DICE\logo1.jpeg" alt="Center Logo" class="logo-item">
+        <img src="C:\Users\srini\OneDrive\Desktop\DICE\logo2.PNG" alt="Right Logo" class="logo-item">
+    </header>
+
+    <div class="scene" id="scene">
+        <div class="shadow" id="shadow"></div>
+        <div class="cube" id="cube">
+            <div class="face front">1</div>
+            <div class="face back">1</div>
+            <div class="face right">2</div>
+            <div class="face left">2</div>
+            <div class="face top">3</div>
+            <div class="face bottom star-face">⭐</div>
+        </div>
+    </div>
+
+    <button id="roll-btn">ROLL DICE</button>
+
+    <footer class="footer">
+        copyright@ DOT CLUB IBS HYDERABAD
+    </footer>
+
+    <script>
+        const cube = document.getElementById('cube');
+        const scene = document.getElementById('scene');
+        const shadow = document.getElementById('shadow');
+        const btn = document.getElementById('roll-btn');
+
+        const rotations = [
+            { x: 0, y: 0 },          // 1 (Front)
+            { x: 0, y: 180 },        // 1 (Back)
+            { x: 0, y: -90 },        // 2 (Right)
+            { x: 0, y: 90 },         // 2 (Left)
+            { x: -90, y: 0 },        // 3 (Top)
+            { x: 90, y: 0 }          // ⭐ (Bottom)
+        ];
+
+        btn.onclick = () => {
+            btn.disabled = true;
+
+            const resultIndex = Math.floor(Math.random() * 6);
+            const target = rotations[resultIndex];
+
+            // Large random rotations for tumbling
+            const randomX = (Math.floor(Math.random() * 5) + 5) * 360;
+            const randomY = (Math.floor(Math.random() * 5) + 5) * 360;
+            
+            // Animation sequence
+            scene.style.transform = "translateY(-120px) scale(1.1)";
+            shadow.style.transform = "translateY(120px) rotateX(90deg) scale(0.5)";
+            cube.style.transform = `rotateX(${target.x + randomX}deg) rotateY(${target.y + randomY}deg)`;
+
+            setTimeout(() => {
+                scene.style.transform = "translateY(0) scale(1)";
+                shadow.style.transform = "translateY(120px) rotateX(90deg) scale(1)";
+            }, 700);
+
+            setTimeout(() => {
+                btn.disabled = false;
+            }, 2100);
+        };
+    </script>
+</body>
+</html>
